@@ -49,10 +49,17 @@ MAZE = """
 ########
 """
 
-
 def run(solve):
     grid, start, goal = load(MAZE)
     path = solve(grid, start, goal)
+    if not path:
+        print("not solved (ff)")
     show(grid, path)
-    print("solved" if path else "not solved")
+    solved = True
+    for i in range(len(path)-1):
+        if path[i+1] not in neighbors(grid, path[i]):
+            solved = False
+            break
+    if path[0] != start or path[-1] != goal: solved = False
+    print("solved" if solved else "not solved")
     print(len(path))
