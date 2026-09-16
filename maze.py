@@ -52,6 +52,8 @@ MAZE = """
 def run(solve):
     grid, start, goal = load(MAZE)
     path = solve(grid, start, goal)
+    if not path:
+        print("not solved (ff)")
     show(grid, path)
     solved = True
     for i in range(len(path)-1):
