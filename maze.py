@@ -54,6 +54,7 @@ def run(solve):
     path = solve(grid, start, goal)
     if not path:
         print("not solved (ff)")
+        return
     show(grid, path)
     solved = True
     for i in range(len(path)-1):
