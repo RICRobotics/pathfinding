@@ -261,7 +261,7 @@ def rootCoolPath(grid, start, goal):
     while (not done):
         loop += 1
 
-        if (pathsFound >= 10000):
+        if (pathsFound >= 1000):
             done = True
             break
 
@@ -353,7 +353,7 @@ def rootCoolPath(grid, start, goal):
     print(len(paths))
     return finalPath
 
-
+# Actually really dumb
 def randSmartPath(grid, start, goal):
     path = [start]
     for i in range(0, 10000):
@@ -372,6 +372,99 @@ def randSmartPath(grid, start, goal):
     
     return path
 
+# combines the efficiencies of multiple paths into one path
+# can be used on a single path if there are self intersections (randPath)
+def pathOptimizer(paths, grid, start, goal):
+    #paths = []
+    #pathsCount = 5
+    #for i in range(pathsCount):
+        #paths.append(randPath(grid, start, goal))
+    traversed = []
+    potential_traversed = []
+    #pathIndex = [0] * len(paths)
+    index = 0
+    choosenPath = -1
+    done = False
+    dontAdd = True
+    loop = 0
+    #for path in paths:
+        #show(grid, path)
+    while not done:
+        loop += 1
+        dontAdd = False
+        for i in range(len(paths)):
+            for j in range(len(traversed)):
+                if paths[i][index] == goal:
+                    choosenPath = i
+                    done = True
+                    break
+                elif (paths[i][index] == traversed[j].pos):
+                    #print("compare start")
+                    #print(i,index,loop)
+                    #print(traversed[j].pos)
+
+                    travPos = []
+                    travInd = []
+                    for trav in traversed:
+                        travPos.append(trav.pos)
+                        travInd.append(trav.origin)
+
+                    #print(len(traversed))
+                    #print(travPos)
+                    #print(travInd)
+
+                    bumpedPathIndex = traversed[j].origin[0] #There could be multiple paths at this pos, but if that is the case, they must all be the same length, so it doesn't matter which you choose
+                    bumpedPosIndex = paths[bumpedPathIndex].index(traversed[j].pos)
+                    
+                    #show(grid, paths[i][:index+1])
+                    #show(grid, paths[bumpedPathIndex][:bumpedPosIndex+1])
+                    #show(grid, paths[bumpedPathIndex][:index+1])
+
+                    if (bumpedPosIndex == index):
+                        #print("skipped")
+                        continue
+                    
+                    paths[i] = paths[bumpedPathIndex][:bumpedPosIndex+1] + paths[i][index+1:]
+                    distance = index - bumpedPosIndex
+                    #print("new path")
+                    #show(grid, paths[i])
+
+                    traversed = []
+                    for k in range(len(paths)):
+                        for l in range(bumpedPosIndex+1):
+                            potential_traversed.append(PosInfo(paths[k][l],k))
+                    
+                    index = bumpedPosIndex
+                    dontAdd = True
+                    break
+
+            if not dontAdd:
+                potential_traversed.append(PosInfo(paths[i][index], i))
+            if (done):
+                break
+        if (done):
+            break
+        for potential in potential_traversed:
+            inTraversed = False
+            for j in range(len(traversed)):
+                if (potential.pos == traversed[j].pos):
+                    traversed[j].origin.append(potential.origin)
+                    inTraversed = True
+                    break
+            if (not inTraversed):
+                traversed.append(PosInfo(potential.pos, [potential.origin]))
+        potential_traversed = []
+        index += 1
+        #if (loop >= 10000):
+            #break
+
+    #for path in paths:
+        #show(grid, path)
+    
+    if choosenPath >= 0:
+        return paths[choosenPath]
+    return []
+
 def solve(grid, start, goal):
 
     # must return a list of squares going from start to goal, like [(1, 1), (2, 1), (3, 1), ...]
@@ -380,9 +473,15 @@ def solve(grid, start, goal):
     # neighbors(grid, square)  ->  list of open squares next to it (up, down, left, right)
     # grid[row][col]           ->  '#' wall, ' ' open, 'S' start, 'G' goal
     # show(grid, path)
+    paths = []
+    pathsCount = 10
+    for i in range(pathsCount):
+        paths.append(rootRandPath(grid, start, goal))
+    #one randPath and one rootRandPath give suprisingly optimized results
+    #paths.append(randPath(grid, start, goal))
 
-    path = rootRandPath(grid, start, goal)
-        #show(grid, path)
+    path = pathOptimizer(paths,grid, start, goal)#rootRandPath(grid, start, goal)
+    #show(grid, path)
 
     #show(grid, [])
     #print(neighbors(grid, (1, 1)))
